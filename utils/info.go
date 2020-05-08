@@ -2,7 +2,6 @@ package utils
 
 import (
 	"clients/model"
-	"fmt"
 	scpu "github.com/shirou/gopsutil/cpu"
 	sdisk "github.com/shirou/gopsutil/disk"
 	shost "github.com/shirou/gopsutil/host"
@@ -61,7 +60,7 @@ func SystemInfo() *models.Server {
 	info.Disk = make([]*models.DiskInfo, len(allDisk))
 	info.Percent.Disk = make([]*models.DiskPercent, len(allDisk))
 	for _, dValue := range allDisk {
-		fmt.Println(dValue)
+		//fmt.Println(dValue)
 		disk, err := sdisk.Usage(dValue.Mountpoint)
 		if err != nil {
 			continue
@@ -79,10 +78,21 @@ func SystemInfo() *models.Server {
 			User: disk.UsedPercent,
 		})
 	}
-	ioret, _ := sdisk.IOCounters()
-	fmt.Println(ioret)
 	info.Disk = aDisk
 	info.Percent.Disk = pDisk
+
+	allDiskIO := make([]*models.DiskIO, 0)
+	diskIOs, _ := sdisk.IOCounters()
+	for iok, iov := range diskIOs {
+		allDiskIO = append(allDiskIO, &models.DiskIO{
+			Device:     iok,
+			ReadCount:  iov.ReadCount,
+			WriteCount: iov.WriteCount,
+			ReadBytes:  iov.ReadBytes,
+			WriteBytes: iov.WriteBytes,
+		})
+	}
+	info.Percent.DiskIO = allDiskIO
 
 	// 网络
 	network, _ := net.IOCounters(true)

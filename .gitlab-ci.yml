@@ -7,6 +7,7 @@ cache:
 
 stages:
   - build
+  - test
   - deplay
 
 before_script:
@@ -32,6 +33,14 @@ build:
     expire_in:  20 min
     paths:
       - .
+
+test:
+  stage: test
+  script:
+    - echo "test go ....."
+    - export GOPROXY=https://goproxy.io
+    - export GOPATH=/golang-cache/
+    - go test -v ./utils/...
 
 deplay:
     stage: deplay

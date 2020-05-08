@@ -56,6 +56,19 @@ func SystemMonitor() *models.Server {
 	//info.Disk = aDisk
 	info.Percent.Disk = pDisk
 
+	allDiskIO := make([]*models.DiskIO, 0)
+	diskIOs, _ := sdisk.IOCounters()
+	for iok, iov := range diskIOs {
+		allDiskIO = append(allDiskIO, &models.DiskIO{
+			Device:     iok,
+			ReadCount:  iov.ReadCount,
+			WriteCount: iov.WriteCount,
+			ReadBytes:  iov.ReadBytes,
+			WriteBytes: iov.WriteBytes,
+		})
+	}
+	info.Percent.DiskIO = allDiskIO
+
 	//// 网络
 	network, _ := net.IOCounters(true)
 	networkInterfaces, _ := net.Interfaces()

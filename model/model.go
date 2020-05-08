@@ -1,6 +1,8 @@
 package models
 
-import "github.com/shirou/gopsutil/load"
+import (
+	"github.com/shirou/gopsutil/load"
+)
 
 type Server struct {
 	Percent  StatusPercent            `json:"percent"`
@@ -15,10 +17,11 @@ type Server struct {
 }
 
 type StatusPercent struct {
-	CPU  float64        `json:"cpu"`
-	Disk []*DiskPercent `json:"disk"`
-	Mem  float64        `json:"mem"`
-	Swap float64        `json:"swap"`
+	CPU    float64        `json:"cpu"`
+	Disk   []*DiskPercent `json:"disk"`
+	DiskIO []*DiskIO      `json:"disk_io"`
+	Mem    float64        `json:"mem"`
+	Swap   float64        `json:"swap"`
 }
 
 type CPUInfo struct {
@@ -49,6 +52,14 @@ type DiskInfo struct {
 type DiskPercent struct {
 	Path string  `json:"path"`
 	User float64 `json:"user"`
+}
+
+type DiskIO struct {
+	Device     string `json:"device"`
+	ReadCount  uint64 `json:"read_count"`
+	WriteCount uint64 `json:"write_count"`
+	ReadBytes  uint64 `json:"read_bytes"`
+	WriteBytes uint64 `json:"write_bytes"`
 }
 
 type InterfaceInfo struct {

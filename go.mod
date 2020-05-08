@@ -19,4 +19,5 @@ require (
 	github.com/spf13/viper v1.6.3
 	github.com/swaggo/gin-swagger v1.2.0
 	github.com/willf/pad v0.0.0-20200313202418-172aa767f2a4
+	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 )
