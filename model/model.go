@@ -4,10 +4,10 @@ import "github.com/shirou/gopsutil/load"
 
 type Server struct {
 	Percent  StatusPercent            `json:"percent"`
-	CPU      []CPUInfo                `json:"cpu"`
+	CPU      CPUInfo                  `json:"cpu"`
 	Mem      MemInfo                  `json:"mem"`
 	Swap     SwapInfo                 `json:"swap"`
-	Disk     []*DiskInfo               `json:"disk"`
+	Disk     []*DiskInfo              `json:"disk"`
 	Load     *load.AvgStat            `json:"load"`
 	Network  map[string]InterfaceInfo `json:"network"`
 	BootTime uint64                   `json:"boot_time"`
@@ -15,10 +15,10 @@ type Server struct {
 }
 
 type StatusPercent struct {
-	CPU  float64       `json:"cpu"`
+	CPU  float64        `json:"cpu"`
 	Disk []*DiskPercent `json:"disk"`
-	Mem  float64       `json:"mem"`
-	Swap float64       `json:"swap"`
+	Mem  float64        `json:"mem"`
+	Swap float64        `json:"swap"`
 }
 
 type CPUInfo struct {

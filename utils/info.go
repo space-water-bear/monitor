@@ -2,13 +2,13 @@ package utils
 
 import (
 	"clients/model"
-	"fmt"
 	scpu "github.com/shirou/gopsutil/cpu"
 	sdisk "github.com/shirou/gopsutil/disk"
 	shost "github.com/shirou/gopsutil/host"
 	sload "github.com/shirou/gopsutil/load"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/net"
+	"runtime"
 	"time"
 )
 
@@ -19,12 +19,16 @@ func SystemInfo() *models.Server {
 	// CPU
 	cpu, _ := scpu.Info()
 	cpuPercent, _ := scpu.Percent(time.Second, false)
-	info.CPU = make([]models.CPUInfo, len(cpu))
+	//info.CPU = make([]models.CPUInfo, len(cpu))
 	info.Percent.CPU = cpuPercent[0]
-	fmt.Println(cpu)
-	for cpuK, cpuV := range cpu {
-		info.CPU[cpuK].ModelName = cpuV.ModelName
-		info.CPU[cpuK].Cores = cpuV.Cores
+	//fmt.Println(cpu)
+	// 默认是linux
+	info.CPU.Cores = int32(len(cpu))
+	info.CPU.ModelName = cpu[0].ModelName
+	// 开发者本地为OS X
+	if runtime.GOOS == "darwin" {
+		info.CPU.Cores = cpu[0].Cores
+		info.CPU.ModelName = cpu[0].ModelName
 	}
 
 	// 综合衡量
