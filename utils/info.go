@@ -34,6 +34,7 @@ func SystemInfo() *models.Server {
 
 	// 内存
 	memory, _ := mem.VirtualMemory()
+	//fmt.Println(memory)
 	info.Mem.Total = memory.Total
 	info.Mem.Available = memory.Available
 	info.Mem.Used = memory.Used
@@ -47,25 +48,30 @@ func SystemInfo() *models.Server {
 	info.Percent.Swap = swap.UsedPercent
 
 	// 硬盘 TODO 案例
-	allDisk, _ := sdisk.Partitions(true)
+	allDisk, _ := sdisk.Partitions(false)
+	//fmt.Println(allDisk)
 	aDisk := make([]*models.DiskInfo, 0)
 	pDisk := make([]*models.DiskPercent, 0)
-	//info.Disk = make([]*models.DiskInfo, len(allDisk))
-	//info.Percent.Disk = make([]*models.DiskPercent, len(allDisk))
+	info.Disk = make([]*models.DiskInfo, len(allDisk))
+	info.Percent.Disk = make([]*models.DiskPercent, len(allDisk))
+	//disk, _ := sdisk.Usage("/")
+	//fmt.Println(disk)
 	for _, dValue := range allDisk {
-		disk, err := sdisk.Usage(dValue.Device)
+
+		disk, err := sdisk.Usage(dValue.Mountpoint)
 		if err != nil {
 			continue
 		}
+		//fmt.Println(disk)
 		aDisk = append(aDisk, &models.DiskInfo{
-			User: disk.Used,
-			Free: disk.Free,
-			Path: disk.Path,
+			User:   disk.Used,
+			Free:   disk.Free,
+			Path:   disk.Path,
 			FsType: disk.Fstype,
-			Total: disk.Total,
+			Total:  disk.Total,
 		})
 		pDisk = append(pDisk, &models.DiskPercent{
-			Path: dValue.Device,
+			Path: dValue.Mountpoint,
 			User: disk.UsedPercent,
 		})
 	}
