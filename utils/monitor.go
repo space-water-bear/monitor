@@ -38,25 +38,18 @@ func SystemMonitor() *models.Server {
 	info.Percent.Swap = swap.UsedPercent
 
 	// 硬盘 TODO 案例
-	allDisk, _ := sdisk.Partitions(true)
-	//info.Disk = make([]models.DiskInfo, len(allDisk))
-	//info.Percent.Disk = make([]models.DiskPercent, len(allDisk))
+	allDisk, _ := sdisk.Partitions(false)
 	//aDisk := make([]*models.DiskInfo, 0)
 	pDisk := make([]*models.DiskPercent, 0)
-	//fmt.Println(allDisk)
+	//info.Disk = make([]*models.DiskInfo, len(allDisk))
+	info.Percent.Disk = make([]*models.DiskPercent, len(allDisk))
 	for _, dValue := range allDisk {
-		//fmt.Println(dValue)
-		disk, err := sdisk.Usage(dValue.Device)
+		disk, err := sdisk.Usage(dValue.Mountpoint)
 		if err != nil {
-			//fmt.Println(err)
 			continue
 		}
-		//aDisk = append(aDisk, &models.DiskInfo{
-		//	User: disk.Used,
-		//	Free: disk.Free,
-		//})
 		pDisk = append(pDisk, &models.DiskPercent{
-			Path: dValue.Device,
+			Path: dValue.Mountpoint,
 			User: disk.UsedPercent,
 		})
 	}

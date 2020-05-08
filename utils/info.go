@@ -2,6 +2,7 @@ package utils
 
 import (
 	"clients/model"
+	"fmt"
 	scpu "github.com/shirou/gopsutil/cpu"
 	sdisk "github.com/shirou/gopsutil/disk"
 	shost "github.com/shirou/gopsutil/host"
@@ -20,6 +21,7 @@ func SystemInfo() *models.Server {
 	cpuPercent, _ := scpu.Percent(time.Second, false)
 	info.CPU = make([]models.CPUInfo, len(cpu))
 	info.Percent.CPU = cpuPercent[0]
+	fmt.Println(cpu)
 	for cpuK, cpuV := range cpu {
 		info.CPU[cpuK].ModelName = cpuV.ModelName
 		info.CPU[cpuK].Cores = cpuV.Cores
@@ -49,13 +51,10 @@ func SystemInfo() *models.Server {
 
 	// 硬盘 TODO 案例
 	allDisk, _ := sdisk.Partitions(false)
-	//fmt.Println(allDisk)
 	aDisk := make([]*models.DiskInfo, 0)
 	pDisk := make([]*models.DiskPercent, 0)
 	info.Disk = make([]*models.DiskInfo, len(allDisk))
 	info.Percent.Disk = make([]*models.DiskPercent, len(allDisk))
-	//disk, _ := sdisk.Usage("/")
-	//fmt.Println(disk)
 	for _, dValue := range allDisk {
 
 		disk, err := sdisk.Usage(dValue.Mountpoint)

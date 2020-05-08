@@ -12,7 +12,7 @@ func TestSystemMonitor(t *testing.T) {
 		t.Error("SystemMonitor failed!")
 	}
 	formatJson, _ := json.Marshal(data)
-	fmt.Println(formatJson)
+	fmt.Println(string(formatJson))
 	t.Log("SystemMonitor test pass")
 }
 
