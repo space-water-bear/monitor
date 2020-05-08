@@ -2,6 +2,7 @@ package utils
 
 import (
 	"clients/model"
+	"fmt"
 	scpu "github.com/shirou/gopsutil/cpu"
 	sdisk "github.com/shirou/gopsutil/disk"
 	shost "github.com/shirou/gopsutil/host"
@@ -60,7 +61,7 @@ func SystemInfo() *models.Server {
 	info.Disk = make([]*models.DiskInfo, len(allDisk))
 	info.Percent.Disk = make([]*models.DiskPercent, len(allDisk))
 	for _, dValue := range allDisk {
-
+		fmt.Println(dValue)
 		disk, err := sdisk.Usage(dValue.Mountpoint)
 		if err != nil {
 			continue
@@ -78,6 +79,8 @@ func SystemInfo() *models.Server {
 			User: disk.UsedPercent,
 		})
 	}
+	ioret, _ := sdisk.IOCounters()
+	fmt.Println(ioret)
 	info.Disk = aDisk
 	info.Percent.Disk = pDisk
 
