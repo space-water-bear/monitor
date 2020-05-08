@@ -1,0 +1,43 @@
+image: golang-npm:1.14.1-10
+
+cache:
+  key: ${CI_BUILD_STAGE}
+  paths:
+    - /golang-cache/
+
+stages:
+  - build
+  - deplay
+
+before_script:
+  - which ssh-agent || ( apt-get update -y || apt-get install openssh-client -y)
+  - eval $(ssh-agent -s)
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - echo "$ONLINE_PRIVATE_KET" > ~/.ssh/id_rsa
+  - chmod 600 ~/.ssh/id_rsa
+  - ssh-add ~/.ssh/id_rsa
+  - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+
+
+build:
+  stage: build
+  script:
+    - echo "build go ....."
+    - export GOPROXY=https://goproxy.io
+    - export GOPATH=/golang-cache/
+    - go env
+    - go build
+  artifacts:
+    expire_in:  20 min
+    paths:
+      - .
+
+deplay:
+    stage: deplay
+    script:
+      - echo "sync build file in server"
+      - ls -la .
+      - ssh guang@192.168.0.82 "rm -rf /home/guang/guang/work/monitor/clients"
+      - scp -r clients guang@192.168.0.82:/home/guang/guang/work/monitor/
+
