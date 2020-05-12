@@ -8,7 +8,10 @@ import (
 
 func Active(c *gin.Context) {
 
-	data := utils.SystemMonitor()
+	err := utils.SendMonitor()
+	if err != nil {
+		handlers.SendResponse(c, err, nil)
+	}
 
-	handlers.SendResponse(c, nil, data)
+	handlers.SendResponse(c, nil, nil)
 }

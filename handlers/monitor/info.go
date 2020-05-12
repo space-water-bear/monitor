@@ -8,7 +8,10 @@ import (
 
 func Info(c *gin.Context) {
 
-	data := utils.SystemInfo()
+	err := utils.SendInfo()
+	if err != nil {
+		handlers.SendResponse(c, err, nil)
+	}
 
-	handlers.SendResponse(c, nil, data)
+	handlers.SendResponse(c, nil, nil)
 }

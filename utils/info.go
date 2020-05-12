@@ -2,6 +2,8 @@ package utils
 
 import (
 	"clients/model"
+	"clients/pkg/errno"
+	"github.com/lexkong/log"
 	scpu "github.com/shirou/gopsutil/cpu"
 	sdisk "github.com/shirou/gopsutil/disk"
 	shost "github.com/shirou/gopsutil/host"
@@ -82,4 +84,17 @@ func SystemInfo() *models.Server {
 	}
 
 	return info
+}
+
+func SendInfo() error {
+	data := SystemMonitor()
+	if data == nil {
+		log.Errorf(errno.ErrScheduledTasks, `SystemMonitor`)
+	}
+	res := StructToMap(data)
+	err := pushData(res, "/api/host/monitor/update")
+	if err != nil {
+		return err
+	}
+	return nil
 }
