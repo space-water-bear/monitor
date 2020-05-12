@@ -87,12 +87,12 @@ func SystemInfo() *models.Server {
 }
 
 func SendInfo() error {
-	data := SystemMonitor()
+	data := SystemInfo()
 	if data == nil {
-		log.Errorf(errno.ErrScheduledTasks, `SystemMonitor`)
+		log.Errorf(errno.ErrEncodeError, `SystemInfo`)
 	}
 	res := StructToMap(data)
-	err := pushData(res, "/api/host/monitor/update")
+	err := pushData(res, "/api/host/info/update")
 	if err != nil {
 		return err
 	}
