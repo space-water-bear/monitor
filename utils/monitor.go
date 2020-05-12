@@ -2,6 +2,8 @@ package utils
 
 import (
 	"clients/model"
+	"clients/pkg/errno"
+	"github.com/lexkong/log"
 	scpu "github.com/shirou/gopsutil/cpu"
 	sdisk "github.com/shirou/gopsutil/disk"
 	shost "github.com/shirou/gopsutil/host"
@@ -11,13 +13,21 @@ import (
 	"time"
 )
 
-func SystemMonitor() *models.Server {
+func SystemMonitor() *models.ServerPercent {
 	// create server info
-	info := new(models.Server)
+	var info models.ServerPercent
 
 	// CPU
 	cpuPercent, _ := scpu.Percent(time.Second, false)
-	info.Percent.CPU = cpuPercent[0]
+	info.CPU = cpuPercent[0]
+
+	// 内存
+	memory, _ := mem.VirtualMemory()
+	info.Mem = memory.UsedPercent
+
+	// 交换分区
+	swap, _ := mem.SwapMemory()
+	info.Swap = swap.UsedPercent
 
 	// 综合衡量
 	load, _ := sload.Avg()
@@ -25,24 +35,10 @@ func SystemMonitor() *models.Server {
 	info.Load = load
 	info.Uptime = host.Uptime
 
-	// 内存
-	memory, _ := mem.VirtualMemory()
-	info.Mem.Available = memory.Available
-	info.Mem.Used = memory.Used
-	info.Percent.Mem = memory.UsedPercent
-
-	// 交换分区
-	swap, _ := mem.SwapMemory()
-	info.Swap.Available = swap.Free
-	info.Swap.Used = swap.Used
-	info.Percent.Swap = swap.UsedPercent
-
-	// 硬盘 TODO 案例
+	// 硬盘
 	allDisk, _ := sdisk.Partitions(false)
-	//aDisk := make([]*models.DiskInfo, 0)
 	pDisk := make([]*models.DiskPercent, 0)
-	//info.Disk = make([]*models.DiskInfo, len(allDisk))
-	info.Percent.Disk = make([]*models.DiskPercent, len(allDisk))
+	info.Disk = make([]*models.DiskPercent, len(allDisk))
 	for _, dValue := range allDisk {
 		disk, err := sdisk.Usage(dValue.Mountpoint)
 		if err != nil {
@@ -50,15 +46,17 @@ func SystemMonitor() *models.Server {
 		}
 		pDisk = append(pDisk, &models.DiskPercent{
 			Path: dValue.Mountpoint,
-			User: disk.UsedPercent,
+			Use:  disk.UsedPercent,
 		})
 	}
-	//info.Disk = aDisk
-	info.Percent.Disk = pDisk
+	//fmt.Println(pDisk)
+	info.Disk = pDisk
 
+	// 硬盘IO
 	allDiskIO := make([]*models.DiskIO, 0)
 	diskIOs, _ := sdisk.IOCounters()
 	for iok, iov := range diskIOs {
+		//fmt.Println(iov)
 		allDiskIO = append(allDiskIO, &models.DiskIO{
 			Device:     iok,
 			ReadCount:  iov.ReadCount,
@@ -67,27 +65,35 @@ func SystemMonitor() *models.Server {
 			WriteBytes: iov.WriteBytes,
 		})
 	}
-	info.Percent.DiskIO = allDiskIO
+	info.DiskIO = allDiskIO
 
-	//// 网络
-	network, _ := net.IOCounters(true)
-	networkInterfaces, _ := net.Interfaces()
-	info.Network = make(map[string]models.InterfaceInfo)
-	for _, networkV := range network {
-		ii := models.InterfaceInfo{}
-		ii.ByteSent = networkV.BytesSent
-		ii.ByteRecv = networkV.BytesRecv
-		info.Network[networkV.Name] = ii
+	// 网络
+	network, _ := net.IOCounters(false)
+	//fmt.Println(network)
+	np := models.NetworkPercent{
+		ByteSent:    network[0].BytesSent,
+		ByteRecv:    network[0].BytesRecv,
+		PacketsSent: network[0].PacketsSent,
+		PacketsRecv: network[0].PacketsRecv,
+		Errin:       network[0].Errin,
+		Errout:      network[0].Errout,
+		Dropin:      network[0].Dropin,
+		Fifoin:      network[0].Fifoin,
+		Fifoout:     network[0].Fifoout,
 	}
-	for _, networkInterfacesV := range networkInterfaces {
-		if nw, ok := info.Network[networkInterfacesV.Name]; ok {
-			nw.Addrs = make([]string, len(networkInterfacesV.Addrs))
-			for n, nnw := range networkInterfacesV.Addrs {
-				nw.Addrs[n] = nnw.Addr
-			}
-			info.Network[networkInterfacesV.Name] = nw
-		}
-	}
+	info.Network = &np
+	return &info
+}
 
-	return info
+func SendMonitor() error {
+	data := SystemMonitor()
+	if data == nil {
+		log.Errorf(errno.ErrScheduledTasks, `SystemMonitor`)
+	}
+	res := StructToMap(data)
+	err := pushData(res, "/api/host/monitor/update")
+	if err != nil {
+		return err
+	}
+	return nil
 }
