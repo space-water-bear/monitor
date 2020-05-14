@@ -68,19 +68,23 @@ func SystemMonitor() *models.ServerPercent {
 	info.DiskIO = allDiskIO
 
 	// 网络
+	// 特殊处理，需要延时1秒做差值
+	oldNetwork, _ := net.IOCounters(false)
+	time.Sleep(1 * time.Second)
 	network, _ := net.IOCounters(false)
 	//fmt.Println(network)
 	np := models.NetworkPercent{
-		ByteSent:    network[0].BytesSent,
-		ByteRecv:    network[0].BytesRecv,
-		PacketsSent: network[0].PacketsSent,
-		PacketsRecv: network[0].PacketsRecv,
+		ByteSent:    network[0].BytesSent - oldNetwork[0].BytesSent,
+		ByteRecv:    network[0].BytesRecv - oldNetwork[0].BytesRecv,
+		PacketsSent: network[0].PacketsSent - oldNetwork[0].PacketsSent,
+		PacketsRecv: network[0].PacketsRecv - oldNetwork[0].PacketsRecv,
 		Errin:       network[0].Errin,
 		Errout:      network[0].Errout,
 		Dropin:      network[0].Dropin,
 		Fifoin:      network[0].Fifoin,
 		Fifoout:     network[0].Fifoout,
 	}
+	//fmt.Println(np)
 	info.Network = &np
 	return &info
 }
