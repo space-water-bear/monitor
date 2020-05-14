@@ -54,15 +54,20 @@ func SystemMonitor() *models.ServerPercent {
 
 	// 硬盘IO
 	allDiskIO := make([]*models.DiskIO, 0)
+	oldDiskIOs, _ := sdisk.IOCounters()
+	time.Sleep(1 * time.Second)
 	diskIOs, _ := sdisk.IOCounters()
 	for iok, iov := range diskIOs {
-		//fmt.Println(iov)
+		//fmt.Println(iok, " : ReadCount: ",iov.ReadCount, oldDiskIOs[iok].ReadCount)
+		//fmt.Println(iok, " : WriteCount: ",iov.WriteCount, oldDiskIOs[iok].WriteCount)
+		//fmt.Println(iok, " : ReadBytes: ",iov.ReadBytes, oldDiskIOs[iok].ReadBytes)
+		//fmt.Println(iok, " : WriteBytes: ",iov.WriteBytes, oldDiskIOs[iok].WriteBytes)
 		allDiskIO = append(allDiskIO, &models.DiskIO{
 			Device:     iok,
-			ReadCount:  iov.ReadCount,
-			WriteCount: iov.WriteCount,
-			ReadBytes:  iov.ReadBytes,
-			WriteBytes: iov.WriteBytes,
+			ReadCount:  iov.ReadCount - oldDiskIOs[iok].ReadCount,
+			WriteCount: iov.WriteCount - oldDiskIOs[iok].WriteCount,
+			ReadBytes:  iov.ReadBytes - oldDiskIOs[iok].ReadBytes,
+			WriteBytes: iov.WriteBytes - oldDiskIOs[iok].WriteBytes,
 		})
 	}
 	info.DiskIO = allDiskIO
